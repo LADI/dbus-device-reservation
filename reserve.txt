@@ -1,0 +1,196 @@
+A SIMPLE DEVICE RESERVATION SCHEME WITH D-BUS
+
+	This is supposed to bring peace to applications which require
+	exclusive access to audio devices, such as PulseAudio or JACK,
+	that currently fight a constant war about which application
+	gets access. This interface is supposed to be very simple and
+	implementable with only a few lines of code. Beyond improving
+	cooperaton between JACK and PulseAudio this might be useful
+	for other applications that need to access the audio device
+	directly, for example for supporting functionality that is
+	not available in these sound servers. e.g. media players
+	might use this for implementing clean AC3 pass-thru bypassing
+	PulseAudio, since PulseAudio doesn't support AC3 pass-thru for
+	now.
+
+	We version all services, objects, and interfaces to make them
+	future proof.
+
+	This is supposed to live on the session bus. Bus activation
+	shall not be used for the service defined in this document.
+
+	Interface and methods are intended to be abstract enough so
+	that they may be reused for other resources than just sound
+	cards.
+
+	Code name: PAX SOUND SERVERIS
+
+INTERFACE DEFINITION
+
+	Service name:
+		org.freedesktop.ReserveDevice1.<device name>
+
+	Object name:
+		/org/freedesktop/ReserveDevice1/<device name>
+
+	Interface name:
+		org.freedesktop.ReserviceDevice1
+
+	Methods:
+		BOOL RequestRelease(INT32 priority, BOOL show_ui) (mandatory)
+
+			Ask the current owner of the device to release
+			the device for take-over. The application
+			requesting this should pass its priority. The
+			owning application should then compare this
+			priority with its own and release device
+			access and return TRUE (in this order!) if the
+			client's priority is greater than its own.
+
+			If the client's priority is lower than its own
+			the service should return FALSE and do nothing
+			further.
+
+                        If show_ui is TRUE the current owner may
+                        release the device after some form of user
+                        interaction. If show_ui is FALSE the current
+                        owner must reply quickly and without user
+                        interaction.
+
+                        The current owner doesn't need to base its
+                        decision whether to return TRUE or FALSE
+                        solely on the value of priority. It may take
+                        other facts into consideration.
+
+	Properties:
+		INT32 Priority (optional)
+
+			The priority of the current owner of the
+			device
+
+		STRING ApplicationName (optional)
+
+			The name of the application currently holding
+			the device
+
+		UINT64 ApplicationProcessID (optional)
+
+			The PID of the process of the application
+			currently accessing the device
+
+		STRING ApplicationDeviceName (optional)
+
+			The name of the device how it is presented in
+			the application's context. This is supposed to
+			be human readable device identification
+			string.  This is intended to be used in user
+			dialogs which inform which application blocks
+			the device right now and help the user to make
+			that application release it.
+
+			Again, this is supposed to contain the device
+			name in the *application's* context. Devices
+			might appear under different names in
+			different applications. e.g.  PulseAudio might
+			list a device as "Intel HDA" while a
+			different application might call it "hw:0". To
+			help the user to free the right device in the
+			application this property should hence contain
+			the name in the owner application's
+			context.
+
+LOGIC
+
+	When an audio application that requires exclusive access to
+	the audio device starts up it shall first request the service
+	name org.freedesktop.ReserveDevice1.<device name> on the
+	session bus. <device name> shall be replaced by some form of
+	device identifier. For sound cards supported by normal kernel
+	drivers (i.e. ALSA/OSS kernel drivers) <device name> shall be
+	replaced by "Audio<n>" where <n> refers to the numeric
+	ALSA/OSS sound card index, 0 for the first card, 1 for the
+	second card, ... Example: "Audio0"). If that succeeds it may
+	access the audio device exclusively as long as it holds this
+	service name.
+
+	The initial request shall be made with
+	DBUS_NAME_FLAG_DO_NOT_QUEUE and
+	DBUS_NAME_FLAG_ALLOW_REPLACEMENT. DBUS_NAME_FLAG_REPLACE_EXISTING
+	shall not be set.
+
+	If the name request fails, the application may issue the
+	RequestRelease() method on the service. It shall pass a
+	priority value.  If that priority is greater than the one of
+	the current owner the owner should release the device access,
+	and return TRUE (in this order!). The client shall then
+	request the name again, this time with
+	DBUS_NAME_FLAG_REPLACE_EXISTING, DBUS_NAME_FLAG_DO_NOT_QUEUE,
+	DBUS_NAME_FLAG_ALLOW_REPLACEMENT set. If the priority is lower
+	then the owner should return FALSE and the client shall not try
+	further access to the device.
+
+	An application shall watch for
+	org.freedesktop.DBus.NameOwnerChanged signals and give up
+	device access in case its service name is forcibly taken
+	away. This signal may also be used to monitor which
+	application currently owns the audio device.
+
+	While an application holds the service name it may exclusively
+	access the device. It doesn't need to always keep it open
+	during that time however. OTOH it shall not assume that
+	opening the device actually always succeeds if it owns the
+	name.
+
+        We always reserve entire devices. Partial device reservation
+        (as in only reserving playback, not capturing) shall not be
+        implemented.
+
+PRIORITIES
+
+	Priorities may use the full INT32 range. Normal applications
+	shall use priority 0. System services shall use positive
+	priorities (i.e. because they are probably more important than
+	normal applications).  "Unimportant" applications shall use
+	negative priorities.
+
+	Higher priority values win.
+
+	INT32_MAX shall be considered the priority that always wins.
+
+	INT32_MIN shall be considered the priority that always loses.
+
+PROPERTIES
+
+	Optionally the owner of the device access may export a few
+	properties with a bit of descriptive information about
+	itself. This is supposed to be useful to how a nice message
+	to the user: "Application %s is blocking device %s. Please
+	close this application or make sure it closes the access to
+	that device." with ApplicationName and ApplicationDeviceName
+	filled in.
+
+RATIONALE
+
+	There are two reasons to have RequestRelease instead of simply
+	requesting the name right-away with
+	DBUS_NAME_FLAG_REPLACE_EXISTING: firstly this fixes a race
+	condition: the application giving up the name should first
+	release the device and then release the name. If we take away
+	the name forcibly right-away then the appliction needs to
+	react to that and close the device while the new owner might
+	already have tried to access it without success. Secondly, the
+	priority logic requires an explicit method likes this.
+
+	If an application dies its service name will automatically be
+	released as well.
+
+IMPLEMENTATION
+
+        A trivial implementation of this interface uses INT32_MAX as
+        priority value and always returns FALSE in RequestRelease. An
+        application written like this would always get access to the
+        device (unless the device is already owned by an application
+        that uses a similar trivial implementation) and would never
+        need to give it up again.
+
+Lennart Poettering
