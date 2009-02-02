@@ -37,8 +37,7 @@ typedef struct rd_device rd_device;
  * completely to make sure the new application may acceess it. */
 typedef int (*rd_request_cb_t)(
 	rd_device *d,
-	int forced,                   /* Non-zero if an application forcibly took the lock away without asking. If this is the case then the return value of this call is ignored. */
-	int show_ui);                 /* Non-zero if your application may show a UI before unlocking the device. */
+	int forced);                  /* Non-zero if an application forcibly took the lock away without asking. If this is the case then the return value of this call is ignored. */
 
 /* Try to lock the device. Returns 0 on success, a negative errno
  * style return value on error. The DBus error might be set as well if
@@ -49,7 +48,6 @@ int rd_acquire(
 	const char *device_name,      /* The device to lock, e.g. "Audio0" */
 	const char *application_name, /* A human readable name of the application, e.g. "PulseAudio Sound Server" */
 	int32_t priority,             /* The priority for this application. If unsure use 0 */
-	int show_ui,                  /* Is it OK if the application that currently owns the device queries the user about this in the UI before allowing/denying the request? */
 	rd_request_cb_t request_cb,   /* Will be called whenever someone asks that this device shall be released. May be NULL if priority is INT32_MAX */
 	DBusError *error);            /* If we fail due to a D-Bus related issue the error will be filled in here. May be NULL. */
 

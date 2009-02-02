@@ -37,7 +37,7 @@ INTERFACE DEFINITION
 		org.freedesktop.ReserviceDevice1
 
 	Methods:
-		BOOL RequestRelease(INT32 priority, BOOL show_ui) (mandatory)
+		BOOL RequestRelease(INT32 priority) (mandatory)
 
 			Ask the current owner of the device to release
 			the device for take-over. The application
@@ -51,16 +51,12 @@ INTERFACE DEFINITION
 			the service should return FALSE and do nothing
 			further.
 
-                        If show_ui is TRUE the current owner may
-                        release the device after some form of user
-                        interaction. If show_ui is FALSE the current
-                        owner must reply quickly and without user
-                        interaction.
-
                         The current owner doesn't need to base its
                         decision whether to return TRUE or FALSE
                         solely on the value of priority. It may take
-                        other facts into consideration.
+                        other facts into consideration. However this
+                        function is supposed to return quickly,
+                        i.e. no user interaction shall be involved.
 
 	Properties:
 		INT32 Priority (optional)
@@ -130,10 +126,9 @@ LOGIC
 	further access to the device.
 
 	An application shall watch for
-	org.freedesktop.DBus.NameOwnerChanged signals and give up
+	org.freedesktop.DBus.LostName signals and give up
 	device access in case its service name is forcibly taken
-	away. This signal may also be used to monitor which
-	application currently owns the audio device.
+	away. 
 
 	While an application holds the service name it may exclusively
 	access the device. It doesn't need to always keep it open

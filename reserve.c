@@ -62,7 +62,6 @@ static const char introspection[] =
 	" <interface name=\"org.freedesktop.ReserveDevice1\">"
 	"  <method name=\"RequestRelease\">"
 	"   <arg name=\"priority\" type=\"i\" direction=\"in\"/>"
-	"   <arg name=\"show_ui\" type=\"b\" direction=\"in\"/>"
 	"   <arg name=\"result\" type=\"b\" direction=\"out\"/>"
 	"  </method>"
 	"  <property name=\"Priority\" type=\"i\" access=\"read\"/>"
@@ -129,13 +128,12 @@ static DBusHandlerResult object_handler(
 		    "RequestRelease")) {
 
 		int32_t priority;
-		dbus_bool_t show_ui, ret;
+		dbus_bool_t ret;
 
 		if (!dbus_message_get_args(
 			    m,
 			    &error,
 			    DBUS_TYPE_INT32, &priority,
-			    DBUS_TYPE_BOOLEAN, &show_ui,
 			    DBUS_TYPE_INVALID))
 			goto invalid;
 
@@ -144,7 +142,7 @@ static DBusHandlerResult object_handler(
 		if (priority > d->priority && d->request_cb) {
 			d->ref++;
 
-			if (d->request_cb(d, 0, show_ui) > 0) {
+			if (d->request_cb(d, 0) > 0) {
 				ret = TRUE;
 				d->gave_up = 1;
 			}
@@ -329,7 +327,7 @@ static DBusHandlerResult filter_handler(
 				d->ref++;
 
 				if (d->request_cb)
-					d->request_cb(d, 1, 0);
+					d->request_cb(d, 1);
 				d->gave_up = 1;
 
 				rd_release(d);
@@ -377,7 +375,6 @@ int rd_acquire(
 	const char *device_name,
 	const char *application_name,
 	int32_t priority,
-	int _show_ui,
 	rd_request_cb_t request_cb,
 	DBusError *error) {
 
@@ -385,14 +382,12 @@ int rd_acquire(
 	int r, k;
 	DBusError _error;
 	DBusMessage *m = NULL, *reply = NULL;
-	dbus_bool_t good, show_ui;
+	dbus_bool_t good;
 
 	if (!error)
 		error = &_error;
 
 	dbus_error_init(error);
-
-	show_ui = _show_ui;
 
 	if (!_d)
 		return -EINVAL;
@@ -472,7 +467,6 @@ int rd_acquire(
 	if (!dbus_message_append_args(
 		    m,
 		    DBUS_TYPE_INT32, &d->priority,
-		    DBUS_TYPE_BOOLEAN, &show_ui,
 		    DBUS_TYPE_INVALID)) {
 		r = -ENOMEM;
 		goto fail;
@@ -481,7 +475,7 @@ int rd_acquire(
 	if (!(reply = dbus_connection_send_with_reply_and_block(
 		      d->connection,
 		      m,
-		      show_ui ? 60*1000 : -1, /* when UI is shown, wait for a minute */
+		      -1,
 		      error))) {
 		r = -EIO;
 		goto fail;

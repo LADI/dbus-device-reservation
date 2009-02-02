@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
                  "Audio0",
                  "ReserveTest",
                  priority,
-                 1,
                  request_cb,
                  &error)) < 0) {
 
