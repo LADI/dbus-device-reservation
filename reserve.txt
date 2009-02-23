@@ -69,11 +69,6 @@ INTERFACE DEFINITION
 			The name of the application currently holding
 			the device
 
-		UINT64 ApplicationProcessID (optional)
-
-			The PID of the process of the application
-			currently accessing the device
-
 		STRING ApplicationDeviceName (optional)
 
 			The name of the device how it is presented in
@@ -128,7 +123,7 @@ LOGIC
 	An application shall watch for
 	org.freedesktop.DBus.LostName signals and give up
 	device access in case its service name is forcibly taken
-	away. 
+	away.
 
 	While an application holds the service name it may exclusively
 	access the device. It doesn't need to always keep it open
