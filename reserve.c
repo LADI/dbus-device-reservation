@@ -59,6 +59,8 @@ struct rd_device {
 static const char introspection[] =
 	DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE
 	"<node>"
+	" <!-- If you are looking for documentation make sure to check out\n"
+	"      http://git.0pointer.de/?p=reserve.git;a=blob;f=reserve.txt -->\n"
 	" <interface name=\"org.freedesktop.ReserveDevice1\">"
 	"  <method name=\"RequestRelease\">"
 	"   <arg name=\"priority\" type=\"i\" direction=\"in\"/>"
