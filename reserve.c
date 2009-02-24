@@ -422,7 +422,7 @@ int rd_acquire(
 		     d->connection,
 		     d->service_name,
 		     DBUS_NAME_FLAG_DO_NOT_QUEUE|
-		     DBUS_NAME_FLAG_ALLOW_REPLACEMENT,
+		     (priority < INT32_MAX ? DBUS_NAME_FLAG_ALLOW_REPLACEMENT : 0),
 		     error)) < 0) {
 		r = -EIO;
 		goto fail;
@@ -485,7 +485,7 @@ int rd_acquire(
 		     d->connection,
 		     d->service_name,
 		     DBUS_NAME_FLAG_DO_NOT_QUEUE|
-		     DBUS_NAME_FLAG_ALLOW_REPLACEMENT|
+		     (priority < INT32_MAX ? DBUS_NAME_FLAG_ALLOW_REPLACEMENT : 0)|
 		     DBUS_NAME_FLAG_REPLACE_EXISTING,
 		     error)) < 0) {
 		r = -EIO;
