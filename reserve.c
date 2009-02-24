@@ -465,6 +465,14 @@ int rd_acquire(
 		      m,
 		      -1,
 		      error))) {
+
+		if (dbus_error_has_name(error, DBUS_ERROR_TIMED_OUT) ||
+		    dbus_error_has_name(error, DBUS_ERROR_UNKNOWN_METHOD)) {
+			/* This must be treated as denied. */
+			r = -EBUSY;
+			goto fail;
+		}
+
 		r = -EIO;
 		goto fail;
 	}
