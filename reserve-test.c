@@ -52,11 +52,17 @@ int main(int argc, char *argv[]) {
     int r = 1, e;
     time_t started_at;
     int32_t priority = 0;
+    const char *dname;
 
     dbus_error_init(&error);
 
     if (argc >= 2)
         priority = atoi(argv[1]);
+
+    if (argc >= 3)
+        dname = argv[2];
+    else
+        dname = "Audio0";
 
     printf("Using priority %i.\n", priority);
 
@@ -68,14 +74,13 @@ int main(int argc, char *argv[]) {
     if ((e = rd_acquire(
                  &device,
                  c,
-                 "Audio0",
+                 dname,
                  "ReserveTest",
                  priority,
                  request_cb,
                  &error)) < 0) {
 
-        fprintf(stderr, "Failed to acquire device: %s\n",
-                error.message ? error.message : strerror(-e));
+        fprintf(stderr, "Failed to acquire device: %s\n", strerror(-e));
         goto finish;
     }
 
