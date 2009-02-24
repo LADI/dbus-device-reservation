@@ -31,13 +31,13 @@
 
 #include "reserve.h"
 
-#define RUN_FOR_SECS 10
+#define RUN_FOR_SECS 60
 
 static int quit = 0;
 rd_device *device = NULL;
 
-static int request_cb(rd_device *d, int forced, int show_ui) {
-    printf("Giving up device. (forced=%i, show_ui=%i)\n", forced, show_ui);
+static int request_cb(rd_device *d, int forced) {
+    printf("Giving up device. (forced=%i)\n", forced);
 
     rd_release(d);
     device = NULL;
