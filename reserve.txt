@@ -139,15 +139,18 @@ LOGIC
         (as in only reserving playback, not capturing) shall not be
         implemented.
 
-        If an application has priority of INT32_MAX
-        DBUS_NAME_FLAG_ALLOW_REPLACEMENT should not be set when
-        requesting the name. Also, in this case implementing
-        RequestRelease() is optional. Implementations MUST be able to
-        deal with org.freedesktop.DBus.Error.UnknownMethod,
+        As an exception to the rules above if an application has a
+        priority of INT32_MAX DBUS_NAME_FLAG_ALLOW_REPLACEMENT should
+        not be set when requesting the name. Also, in this case
+        implementing the RequestRelease() method is
+        optional.
+
+        Implementations that call RequestName() MUST be able to handle
+        the org.freedesktop.DBus.Error.UnknownMethod,
         org.freedesktop.DBus.Error.NoReply and
-        org.freedesktop.DBus.Error.TimedOut when calling this
-        function. Both cases should NOT be treated as errors but as
-        negative replies.
+        org.freedesktop.DBus.Error.TimedOut error conditions. All
+        three cases should NOT be treated as errors but as negative
+        replies.
 
 PRIORITIES
 
@@ -167,7 +170,7 @@ PROPERTIES
 
 	Optionally the owner of the device access may export a few
 	properties with a bit of descriptive information about
-	itself. This is supposed to be useful to how a nice message
+	itself. This is supposed to be useful to show a nice message
 	to the user: "Application %s is blocking device %s. Please
 	close this application or make sure it closes the access to
 	that device." with ApplicationName and ApplicationDeviceName
@@ -190,15 +193,16 @@ RATIONALE
 	priority logic requires an explicit method likes this.
 
 	If an application dies its service name will automatically be
-	released as well.
+	released by the D-Bus bus daemon.
 
 IMPLEMENTATION
 
         A trivial implementation of this interface uses INT32_MAX as
-        priority value and does not actually implement
-        RequestRelease. An application written like this would always
-        get access to the device (unless the device is already owned
-        by an application that uses a similar trivial implementation)
-        and would never need to give it up again.
+        priority value and does not implement RequestRelease or any
+        other function or property of the interface defined above. An
+        application written like this would always get access to the
+        device (unless the device is already owned by an application
+        that uses a similar trivial implementation) and would never
+        need to give it up again.
 
 Lennart Poettering
