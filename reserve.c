@@ -67,7 +67,6 @@ static const char introspection[] =
 	"  <property name=\"Priority\" type=\"i\" access=\"read\"/>"
 	"  <property name=\"ApplicationName\" type=\"s\" access=\"read\"/>"
 	"  <property name=\"ApplicationDeviceName\" type=\"s\" access=\"read\"/>"
-	"  <property name=\"ApplicationPID\" type=\"t\" access=\"read\"/>"
 	" </interface>"
 	" <interface name=\"org.freedesktop.DBus.Properties\">"
 	"  <method name=\"Get\">"
@@ -212,19 +211,6 @@ static DBusHandlerResult object_handler(
 					    reply,
 					    DBUS_TYPE_INT32,
 					    &d->priority))
-					goto oom;
-			} else if (strcmp(property, "ApplicationProcessID") == 0) {
-				uint64_t u;
-
-				if (!(reply = dbus_message_new_method_return(m)))
-					goto oom;
-
-				u = (uint64_t) getpid();
-
-				if (!add_variant(
-					    reply,
-					    DBUS_TYPE_UINT64,
-					    &u))
 					goto oom;
 			} else {
 				if (!(reply = dbus_message_new_error_printf(
