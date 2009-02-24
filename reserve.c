@@ -467,7 +467,8 @@ int rd_acquire(
 		      error))) {
 
 		if (dbus_error_has_name(error, DBUS_ERROR_TIMED_OUT) ||
-		    dbus_error_has_name(error, DBUS_ERROR_UNKNOWN_METHOD)) {
+		    dbus_error_has_name(error, DBUS_ERROR_UNKNOWN_METHOD) ||
+		    dbus_error_has_name(error, DBUS_ERROR_NO_REPLY)) {
 			/* This must be treated as denied. */
 			r = -EBUSY;
 			goto fail;
