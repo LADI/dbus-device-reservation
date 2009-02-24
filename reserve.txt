@@ -143,9 +143,11 @@ LOGIC
         DBUS_NAME_FLAG_ALLOW_REPLACEMENT should not be set when
         requesting the name. Also, in this case implementing
         RequestRelease() is optional. Implementations MUST be able to
-        deal with org.freedesktop.DBus.Error.UnknownMethod and
-        timeouts when calling this function. Both cases should NOT be
-        treated as errors but as negative replies.
+        deal with org.freedesktop.DBus.Error.UnknownMethod,
+        org.freedesktop.DBus.Error.NoReply and
+        org.freedesktop.DBus.Error.TimedOut when calling this
+        function. Both cases should NOT be treated as errors but as
+        negative replies.
 
 PRIORITIES
 
