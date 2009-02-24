@@ -37,7 +37,8 @@ INTERFACE DEFINITION
 		org.freedesktop.ReserviceDevice1
 
 	Methods:
-		BOOL RequestRelease(INT32 priority) (mandatory)
+		BOOL RequestRelease(INT32 priority)
+                        (mandatory unless own priority is INT32_MAX)
 
 			Ask the current owner of the device to release
 			the device for take-over. The application
@@ -59,17 +60,20 @@ INTERFACE DEFINITION
                         i.e. no user interaction shall be involved.
 
 	Properties:
-		INT32 Priority (optional)
+		INT32 Priority
+                        (optional)
 
 			The priority of the current owner of the
 			device
 
-		STRING ApplicationName (optional)
+		STRING ApplicationName
+                        (optional)
 
 			The name of the application currently holding
 			the device
 
-		STRING ApplicationDeviceName (optional)
+		STRING ApplicationDeviceName
+                        (optional)
 
 			The name of the device how it is presented in
 			the application's context. This is supposed to
@@ -106,8 +110,8 @@ LOGIC
 
 	The initial request shall be made with
 	DBUS_NAME_FLAG_DO_NOT_QUEUE and
-	DBUS_NAME_FLAG_ALLOW_REPLACEMENT. DBUS_NAME_FLAG_REPLACE_EXISTING
-	shall not be set.
+	DBUS_NAME_FLAG_ALLOW_REPLACEMENT (exception see
+	below). DBUS_NAME_FLAG_REPLACE_EXISTING shall not be set.
 
 	If the name request fails, the application may issue the
 	RequestRelease() method on the service. It shall pass a
@@ -116,9 +120,9 @@ LOGIC
 	and return TRUE (in this order!). The client shall then
 	request the name again, this time with
 	DBUS_NAME_FLAG_REPLACE_EXISTING, DBUS_NAME_FLAG_DO_NOT_QUEUE,
-	DBUS_NAME_FLAG_ALLOW_REPLACEMENT set. If the priority is lower
-	then the owner should return FALSE and the client shall not try
-	further access to the device.
+	DBUS_NAME_FLAG_ALLOW_REPLACEMENT (exception see below) set. If
+	the priority is lower then the owner should return FALSE and
+	the client shall not try further access to the device.
 
 	An application shall watch for
 	org.freedesktop.DBus.LostName signals and give up
@@ -134,6 +138,14 @@ LOGIC
         We always reserve entire devices. Partial device reservation
         (as in only reserving playback, not capturing) shall not be
         implemented.
+
+        If an application has priority of INT32_MAX
+        DBUS_NAME_FLAG_ALLOW_REPLACEMENT should not be set when
+        requesting the name. Also, in this case implementing
+        RequestRelease() is optional. Implementations MUST be able to
+        deal with org.freedesktop.DBus.Error.UnknownMethod and
+        timeouts when calling this function. Both cases should NOT be
+        treated as errors but as negative replies.
 
 PRIORITIES
 
@@ -159,6 +171,10 @@ PROPERTIES
 	that device." with ApplicationName and ApplicationDeviceName
 	filled in.
 
+        This data can be augmented by the data that is available from
+        org.freedesktop.DBus.GetConnectionUnixUser and
+        org.freedesktop.DBus.GetConnectionUnixProcessID.
+
 RATIONALE
 
 	There are two reasons to have RequestRelease instead of simply
@@ -177,10 +193,10 @@ RATIONALE
 IMPLEMENTATION
 
         A trivial implementation of this interface uses INT32_MAX as
-        priority value and always returns FALSE in RequestRelease. An
-        application written like this would always get access to the
-        device (unless the device is already owned by an application
-        that uses a similar trivial implementation) and would never
-        need to give it up again.
+        priority value and does not actually implement
+        RequestRelease. An application written like this would always
+        get access to the device (unless the device is already owned
+        by an application that uses a similar trivial implementation)
+        and would never need to give it up again.
 
 Lennart Poettering
