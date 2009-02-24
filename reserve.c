@@ -463,7 +463,7 @@ int rd_acquire(
 	if (!(reply = dbus_connection_send_with_reply_and_block(
 		      d->connection,
 		      m,
-		      -1,
+		      5000, /* 5s */
 		      error))) {
 
 		if (dbus_error_has_name(error, DBUS_ERROR_TIMED_OUT) ||
