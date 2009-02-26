@@ -34,7 +34,7 @@ INTERFACE DEFINITION
 		/org/freedesktop/ReserveDevice1/<device name>
 
 	Interface name:
-		org.freedesktop.ReserviceDevice1
+		org.freedesktop.ReserveDevice1
 
 	Methods:
 		BOOL RequestRelease(INT32 priority)
