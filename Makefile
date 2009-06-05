@@ -23,8 +23,13 @@
 CFLAGS=-Wall -Wextra -O0 -g -pipe `pkg-config --cflags dbus-1`
 LIBS=`pkg-config --libs dbus-1`
 
+all: reserve-test reserve-monitor-test
+
 reserve-test: reserve.h reserve.o reserve-test.o
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
+reserve-monitor-test: reserve-monitor.h reserve-monitor.o reserve-monitor-test.o
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
+
 clean:
-	rm -f *.o reserve-test
+	rm -f *.o reserve-test reserve-monitor-test
