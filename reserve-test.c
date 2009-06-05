@@ -34,81 +34,82 @@
 #define RUN_FOR_SECS 60
 
 static int quit = 0;
-rd_device *device = NULL;
+static rd_device *device = NULL;
 
 static int request_cb(rd_device *d, int forced) {
-    printf("Giving up device. (forced=%i)\n", forced);
+	printf("Giving up device. (forced=%i)\n", forced);
 
-    rd_release(d);
-    device = NULL;
+	rd_release(d);
+	device = NULL;
 
-    quit = 1;
-    return 1;
+	quit = 1;
+	return 1;
 }
 
 int main(int argc, char *argv[]) {
-    DBusError error;
-    DBusConnection *c;
-    int r = 1, e;
-    time_t started_at;
-    int32_t priority = 0;
-    const char *dname;
+	DBusError error;
+	DBusConnection *c;
+	int r = 1, e;
+	time_t started_at;
+	int32_t priority = 0;
+	const char *dname;
 
-    dbus_error_init(&error);
+	dbus_error_init(&error);
 
-    if (argc >= 2)
-        priority = atoi(argv[1]);
+	if (argc >= 2)
+		priority = atoi(argv[1]);
 
-    if (argc >= 3)
-        dname = argv[2];
-    else
-        dname = "Audio0";
+	if (argc >= 3)
+		dname = argv[2];
+	else
+		dname = "Audio0";
 
-    printf("Using priority %i.\n", priority);
+	printf("Using priority %i.\n", priority);
 
-    if (!(c = dbus_bus_get(DBUS_BUS_SESSION, &error))) {
-        fprintf(stderr, "Failed to connect to session bus: %s\n", error.message);
-        goto finish;
-    }
+	if (!(c = dbus_bus_get(DBUS_BUS_SESSION, &error))) {
+		fprintf(stderr, "Failed to connect to session bus: %s\n", error.message);
+		goto finish;
+	}
 
-    if ((e = rd_acquire(
-                 &device,
-                 c,
-                 dname,
-                 "ReserveTest",
-                 priority,
-                 request_cb,
-                 &error)) < 0) {
+	if ((e = rd_acquire(
+		     &device,
+		     c,
+		     dname,
+		     "ReserveTest",
+		     priority,
+		     request_cb,
+		     &error)) < 0) {
 
-        fprintf(stderr, "Failed to acquire device: %s\n", strerror(-e));
-        goto finish;
-    }
+		fprintf(stderr, "Failed to acquire device: %s\n", strerror(-e));
+		goto finish;
+	}
 
-    printf("Successfully acquired device.\n");
+	printf("Successfully acquired device.\n");
 
-    started_at = time(NULL);
+	started_at = time(NULL);
 
-    while (!quit) {
-        time_t t;
+	while (!quit) {
+		time_t t;
 
-        t = time(NULL);
+		t = time(NULL);
 
-        if (t >= started_at + RUN_FOR_SECS)
-            break;
+		if (t >= started_at + RUN_FOR_SECS)
+			break;
 
-        if (!dbus_connection_read_write_dispatch(c, (started_at + RUN_FOR_SECS - t) * 1000))
-            break;
-    }
+		if (!dbus_connection_read_write_dispatch(c, (started_at + RUN_FOR_SECS - t) * 1000))
+			break;
+	}
 
-    r = 0;
+	r = 0;
+	fprintf(stderr, "Exiting cleanly.\n");
 
 finish:
 
-    if (device)
-        rd_release(device);
+	if (device)
+		rd_release(device);
 
-    if (c)
-        dbus_connection_unref(c);
+	if (c)
+		dbus_connection_unref(c);
 
-    return r;
+	return r;
 }
