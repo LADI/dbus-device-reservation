@@ -1,3 +1,5 @@
+/*-*- Mode: C; c-basic-offset: 8 -*-*/
+
 /***
   Copyright 2009 Lennart Poettering
 
