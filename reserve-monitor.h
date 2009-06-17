@@ -30,6 +30,10 @@
 #include <dbus/dbus.h>
 #include <inttypes.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct rm_monitor rm_monitor;
 
 /* Prototype for a function that is called whenever the reservation
@@ -60,5 +64,9 @@ void rm_set_userdata(rm_monitor *m, void *userdata);
 /* Query the userdata pointer from an rm_monitor. Returns NULL if no
  * userdata was set. */
 void* rm_get_userdata(rm_monitor *m);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
