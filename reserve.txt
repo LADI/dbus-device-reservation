@@ -106,7 +106,7 @@ LOGIC
 	ALSA/OSS sound card index, 0 for the first card, 1 for the
 	second card, ... Example: "Audio0"). If that succeeds it may
 	access the audio device exclusively as long as it holds this
-	service name. Similarly, for Alsa MIDI devices "Midi<n>" shall
+	service name. Similarly, for ALSA MIDI devices "Midi<n>" shall
 	be used, while for /dev/video* devices Video<n> shall be used.
 
 	The initial request shall be made with
